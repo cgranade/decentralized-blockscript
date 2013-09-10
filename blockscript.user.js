@@ -83,7 +83,7 @@ $('body').ready(function() {
         // as no one gets to be specially privileged by this script.
         // Right now, this blocklist only blocks the author of this script,
         // to demonstrate the concept.
-        blockListSources = ['http://github.com/cgranade/decentralized-blockscript/blocklist-example.json'];
+        blockListSources = ['https://raw.github.com/cgranade/decentralized-blockscript/master/blocklist-example.json'];
     } else {
         blockListSources = localStorage["blockListSources"];
     }
