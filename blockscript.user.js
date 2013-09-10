@@ -5,6 +5,7 @@
 // @description  Performs blocking on social media sites based on user-selected
 //               blocklists.
 // @require      http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
+// @require      http:////netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js
 // @match        http://twitter.com/*
 // @match        https://twitter.com/*
 // @copyright    2013, Christopher E. Granade. Licensed under the AGPLv3 (see
@@ -53,6 +54,33 @@ function applyBlockList() {
     });
 }
 
+function createSettingsGUI() {
+    // Make an item in the settings dropdown.
+    blockListSettingsItem = $('<li><a data-nav="shortcuts" data-toggle="modal" href="#blocklist-settings">Blocklist Settings</a></li>');
+    dashboardItem = $('<div class="module wtf-module js-wtf-module"></div>');
+    dashboardItem.html(
+        '<div class="flex-module">' +
+            '<div class="flex-module-header">' +
+                '<h3>Block Script Settings</h3>' +
+            '</div>' +
+            '<div class="flex-module-inner">' +
+            '</div>' +
+            '<div class="flex-module-footer">' +
+                '<div class="btn-group">' +
+                    '<button type="button" class="btn primary-btn">Save</button>' +
+                    '<button type="button" class="btn">Cancel</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>');
+    dashboardItem.hide();
+    $('div.dashboard .module[role="navigation"]').after(dashboardItem);
+    
+    $('a', blockListSettingsItem).on("click", function() {
+        dashboardItem.show();
+    });
+    $('#user-dropdown .dropdown-menu').append(blockListSettingsItem);
+}
+
 // GLOBAL VARIABLES ////////////////////////////////////////////////////////////
 
 // Make a list of sources to load blocklists from. We will initialize this
@@ -70,7 +98,6 @@ blockList = [];
 // Make a style container to hold the block styles.
 // TODO: make one per block source, so we can refresh independently.
 style = $('<style></style>');
-
 
 // MAIN ////////////////////////////////////////////////////////////////////////
 
@@ -90,5 +117,7 @@ $('body').ready(function() {
     
     $('head').append(style);
     loadBlockList(blockListSources);
+    
+    createSettingsGUI();
     
 });
