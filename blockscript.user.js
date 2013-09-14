@@ -29,9 +29,9 @@
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////////
 
-function loadBlockList(urls) {
+function loadBlockList() {
     blockList = [];
-    urls.forEach(function(url) {
+    blockListSources.forEach(function(url) {
         GM_xmlhttpRequest({
             method: "GET",
             url: url,
@@ -54,31 +54,90 @@ function applyBlockList() {
     });
 }
 
+function loadSettings() {
+    if (localStorage["blockListSources"] == undefined) {
+        // Since we don't have a configuration GUI at the moment,
+        // we need a default. This WILL be removed once a GUI is in place,
+        // as no one gets to be specially privileged by this script.
+        // Right now, this blocklist only blocks the author of this script,
+        // to demonstrate the concept.
+        blockListSources = ['https://raw.github.com/cgranade/decentralized-blockscript/master/blocklist-example.json'];
+        // Apply the default and save it back to the config store.
+        saveSettings();
+    } else {
+        // FIXME: Commas may not be in URLs yet!
+        blockListSources = localStorage["blockListSources"].split(",");
+    }
+    console.log('loaded blockListSources: ' + blockListSources);
+}
+
+function gui_loadSettings() {
+    loadSettings();
+    srcs = blockListSources;
+    if (srcs.length != 0) {
+        // TODO: apply multiple URLs.
+        $('#blkscript-settings-srcurl').val(srcs[0]);
+    }
+}
+
+function saveSettings() {
+    console.log('saving blockListSources: ' + blockListSources);
+    localStorage["blockListSources"] = blockListSources.join(",");
+}
+
+function gui_saveSettings() {
+    blockListSources = [$('#blkscript-settings-srcurl').val()];
+    saveSettings();
+    loadBlockList();
+}
+
 function createSettingsGUI() {
     // Make an item in the settings dropdown.
     blockListSettingsItem = $('<li><a data-nav="shortcuts" data-toggle="modal" href="#blocklist-settings">Blocklist Settings</a></li>');
+    $('#user-dropdown .dropdown-menu').append(blockListSettingsItem);
+    console.log('appended menu item');
+    
+    // Make a panel on the dashboard.
     dashboardItem = $('<div class="module wtf-module js-wtf-module"></div>');
     dashboardItem.html(
-        '<div class="flex-module">' +
+        '<div id="blkscript-settings-panel" class="flex-module">' +
             '<div class="flex-module-header">' +
                 '<h3>Block Script Settings</h3>' +
             '</div>' +
             '<div class="flex-module-inner">' +
+                '<form id="blkscript-settings">' +
+                    '<label>Block list URL</label>' +
+                    // TODO: make multiple URLs supported.
+                    '<input type="text" id="blkscript-settings-srcurl">' +
+                        // TODO: put current value here.
+                    '</input>' +
+                '</form>' +
             '</div>' +
             '<div class="flex-module-footer">' +
                 '<div class="btn-group">' +
-                    '<button type="button" class="btn primary-btn">Save</button>' +
-                    '<button type="button" class="btn">Cancel</button>' +
+                    '<button type="button" id="blkscript-settings-save"   class="btn primary-btn">Save</button>' +
+                    '<button type="button" id="blkscript-settings-cancel" class="btn">Cancel</button>' +
                 '</div>' +
             '</div>' +
         '</div>');
     dashboardItem.hide();
-    $('div.dashboard .module[role="navigation"]').after(dashboardItem);
+    $('div.dashboard .mini-profile').after(dashboardItem);
+    console.log('appended dashboard item');
     
+    // Hook up events to the dashboard.
     $('a', blockListSettingsItem).on("click", function() {
+        gui_loadSettings();
         dashboardItem.show();
     });
-    $('#user-dropdown .dropdown-menu').append(blockListSettingsItem);
+    $('#blkscript-settings-save').on("click", function() {
+        gui_saveSettings();
+        dashboardItem.hide();
+    });
+    $('#blkscript-settings-cancel').on("click", function() {
+        // Hide the panel.
+        dashboardItem.hide();
+    });
+    console.log('attached events');
 }
 
 // GLOBAL VARIABLES ////////////////////////////////////////////////////////////
@@ -95,6 +154,9 @@ blockListSources = [];
 // Make a list of whom to block so far.
 blockList = [];
 
+// How often should we refresh?
+refreshInterval = 120; // Units: [s]
+
 // Make a style container to hold the block styles.
 // TODO: make one per block source, so we can refresh independently.
 style = $('<style></style>');
@@ -104,20 +166,19 @@ style = $('<style></style>');
 $('body').ready(function() {
     
     // Grab the block sources from the configuration store.
-    if (localStorage["blockListSources"] == undefined) {
-        // Since we don't have a configuration GUI at the moment,
-        // we need a default. This WILL be removed once a GUI is in place,
-        // as no one gets to be specially privileged by this script.
-        // Right now, this blocklist only blocks the author of this script,
-        // to demonstrate the concept.
-        blockListSources = ['https://raw.github.com/cgranade/decentralized-blockscript/master/blocklist-example.json'];
-    } else {
-        blockListSources = localStorage["blockListSources"];
-    }
+    loadSettings();
     
+    // Apply the initial blocklist.
     $('head').append(style);
-    loadBlockList(blockListSources);
+    console.log('loading initial blocklist:\n\t' + blockListSources);
+    loadBlockList();
     
+    // Create the settings GUI.
     createSettingsGUI();
+    
+    // Reload the blocklist every once and a while.
+    window.setInterval(function () {
+        loadBlockList();
+    }, 1000 * refreshInterval);
     
 });
