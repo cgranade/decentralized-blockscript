@@ -36,6 +36,7 @@ function loadBlockList() {
             method: "GET",
             url: url,
             onload: function(response) {
+                console.log('got response for URL: ' + url);
                 blockees = $.parseJSON(response.response).twitter;
                 blockees.forEach(function (blockee) {
                     blockList = blockList.concat([blockee["screen-name"]]);
