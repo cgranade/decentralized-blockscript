@@ -50,6 +50,7 @@ function applyBlockList() {
     style.text("");
     blockList.forEach(function(blockee) {
         txt = style.text();
+        console.log('applying block to: ' + blockee);
         style.text(txt + "*[data-screen-name=" + blockee + "] {display: none;}\n");
     });
 }
@@ -159,7 +160,7 @@ refreshInterval = 120; // Units: [s]
 
 // Make a style container to hold the block styles.
 // TODO: make one per block source, so we can refresh independently.
-style = $('<style></style>');
+style = $('<style id="blkscript-style-container"></style>');
 
 // MAIN ////////////////////////////////////////////////////////////////////////
 
