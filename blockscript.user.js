@@ -8,6 +8,7 @@
 // @require      http:////netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js
 // @match        http://twitter.com/*
 // @match        https://twitter.com/*
+// @grant        GM_xmlhttpRequest
 // @copyright    2013, Christopher E. Granade. Licensed under the AGPLv3 (see
 //               source code).
 // ==/UserScript==
@@ -37,7 +38,7 @@ function loadBlockList() {
             url: url,
             onload: function(response) {
                 console.log('got response for URL: ' + url);
-                blockees = $.parseJSON(response.response).twitter;
+                blockees = $.parseJSON(response.responseText).twitter;
                 blockees.forEach(function (blockee) {
                     blockList = blockList.concat([blockee["screen-name"]]);
                 });
@@ -184,3 +185,4 @@ $('body').ready(function() {
     }, 1000 * refreshInterval);
     
 });
+
